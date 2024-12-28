@@ -35,10 +35,10 @@ function HomePage() {
       <div className="divv2">
         <div className="div2">
           <div className="left">
-            <div className="card card1">
+            <div className="card card1#">
               <div className="heading">
                 <h3> <i className='bx bxs-bowl-hot'></i></h3>
-                <h2>2Cr+ Meals</h2>
+                <h2 >2Cr+ Meals</h2>
               </div>
               <div className="text">
                 <p>served and we are not stopping!</p>
@@ -72,7 +72,7 @@ function HomePage() {
               </div>
             </div>
           </div>
-          <div className="right">
+          <div className="righttt">
             <h1>India's Largest</h1>
             <h2>Dhakad Meals Brand</h2>
             <p>Irresistible meals in</p>
@@ -80,7 +80,7 @@ function HomePage() {
           </div>
         </div>
       </div>
-      <div className="divv3">
+      <div className="divvv3">
         <h1>Order Now</h1>
       </div>
       <div className="div3">
@@ -157,8 +157,8 @@ function HomePage() {
       </div>
       <div className="temp"></div>
       <div className="divv5">
-        <div className="sub1">
-          <div className="sub">
+        <div className="sub11">
+          <div className="subb">
             <h1>
               When in<br />
               doubt, <br />

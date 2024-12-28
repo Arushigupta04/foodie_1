@@ -1,49 +1,64 @@
-import React, { useState, useEffect } from 'react';
-import './login.css';
+import React, { useState, useEffect } from "react";
+import "./login.css";
 import SignInImage from "../../assets/log.jpg";
-import { useCookies } from 'react-cookie';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useCookies } from "react-cookie";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const serverURL = "http://localhost:5000";
+const serverURL = "https://foodie-foodorderingwebsite.onrender.com";
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [cookies, setCookie] = useCookies(['token']);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [cookies, setCookie] = useCookies(["token", "userEmail"]); // Save user email in cookies
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const response = await fetch(`${serverURL}/api/signin`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
+      console.log(data);
+      localStorage.setItem("token", data.token);  
 
       if (response.ok) {
-        setCookie('token', data.token, { path: '/' });
-        toast.success('Login successful! Redirecting...');
-        setTimeout(() => window.location.href = '/menu', 2000);
+        setCookie("token", data.token, { path: "/" });
+        setCookie("userEmail", email, { path: "/" }); // Save email in cookies
+        toast.success("Login successful! Redirecting...", {
+          position: "top-right",
+          autoClose: 3000, // Auto-close after 3 seconds
+        });
+        setTimeout(() => (window.location.href = "/menu"), 2000);
       } else {
-        setError(data.error || 'Something went wrong');
+        setError(data.error || "Something went wrong");
+        toast.error(data.error || "Login failed. Please try again.", {
+          position: "top-right",
+          autoClose: 3000, // Auto-close after 3 seconds
+        });
       }
     } catch (error) {
-      console.error('Error:', error);
-      setError('An error occurred, please try again later.');
+      console.error("Error:", error);
+      setError("An error occurred, please try again later.");
+      toast.error("An error occurred, please try again later.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
 
   // Automatically clear error after 3 seconds
   useEffect(() => {
     if (error) {
-      const timer = setTimeout(() => setError(''), 3000);
+      const timer = setTimeout(() => setError(""), 3000);
       return () => clearTimeout(timer); // Clear timeout on component unmount
     }
   }, [error]);
@@ -54,8 +69,12 @@ const Login = () => {
         <div className="container">
           <div className="signin-content">
             <div className="signin-image">
-              <figure><img src={SignInImage} alt="sign in" /></figure>
-              <a href="/sign-up" className="signup-image-link">Create an account</a>
+              <figure>
+                <img src={SignInImage} alt="sign in" />
+              </figure>
+              <a href="/sign-up" className="signup-image-link">
+                Create an account
+              </a>
             </div>
 
             <div className="signin-form">
@@ -72,9 +91,9 @@ const Login = () => {
                     required
                   />
                 </div>
-                <div className="form-group">
+                <div className="form-group password-group">
                   <input
-                    type="password"
+                    type={passwordVisible ? "text" : "password"}
                     name="password"
                     id="password"
                     placeholder="Password"
@@ -82,9 +101,25 @@ const Login = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
+                  <span
+                    className="eye-icon"
+                    onClick={() => setPasswordVisible(!passwordVisible)}
+                  >
+                    {passwordVisible ? (
+                      <i className="fas fa-eye-slash"></i>
+                    ) : (
+                      <i className="fas fa-eye"></i>
+                    )}
+                  </span>
                 </div>
                 <div className="form-group form-button">
-                  <input type="submit" name="signin" id="signin" className="form-submit" value="Log in" />
+                  <input
+                    type="submit"
+                    name="signin"
+                    id="signin"
+                    className="form-submit"
+                    value="Log in"
+                  />
                 </div>
                 {error && <p className="error-text">{error}</p>}
               </form>

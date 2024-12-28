@@ -7,7 +7,7 @@ import "./style.css";
 // Import the image at the top
 import cartBanner from '../../assets/category-images/cart.png';
 
-const serverURL = "http://localhost:5000";
+const serverURL = "https://foodie-foodorderingwebsite.onrender.com";
 
 const ShoppingCart = () => {
   const { cartItems, clearCart, removeItemFromCart, increaseItemQuantity, decreaseItemQuantity } = useContext(CartContext);
@@ -56,6 +56,7 @@ const ShoppingCart = () => {
         setOrderPlaced(true);
         clearCart();
       }, 1500);
+      console.log("wordkedddddddfddd")
     } catch (error) {
       console.error('Error placing order:', error);
       alert('Failed to place order. Please try again later.');
@@ -119,7 +120,7 @@ const ShoppingCart = () => {
               <div className="card mb-4">
                 <div className="card-body">
                   <p><strong>Expected shipping delivery</strong></p>
-                  <p className="mb-0">Within 30 Minutes to 1 Hour</p>
+                  <p className="mb-0">Within 30 Minutes </p>
                 </div>
               </div>
             )}

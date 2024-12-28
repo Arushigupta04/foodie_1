@@ -1,23 +1,111 @@
-
 import React, { useState } from 'react';
+import { useUser } from '../userContext'; // Import the useUser hook to access the authentication context
 import './footer.css';
-import { Link } from 'react-router-dom'; // Import Link from React Router
 import instagramIcon from '../../assets/instagram.svg';
 import facebookIcon from '../../assets/facebook.svg';
-import twitterIcon from '../../assets/twitter.svg'; // Add Twitter icon import
+import twitterIcon from '../../assets/twitter.svg';
 
 function Footer() {
+  const { user } = useUser(); // Access user information from the context
   const [email, setEmail] = useState('');
-  const [feedback, setFeedback] = useState('');
+  const [reviewEmail, setReviewEmail] = useState('');
+  const [review, setReview] = useState('');
+  const [rating, setRating] = useState(0);
+  const [hover, setHover] = useState(0);
+  const [thankYouMessage, setThankYouMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [loginPrompt, setLoginPrompt] = useState(''); // State for login prompt message
+  const [adminErrorMessage, setAdminErrorMessage] = useState('');
 
+  // Newsletter form submission
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
-    setEmail(''); // Reset email field after submission
+
+    // Basic validation
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setErrorMessage('Please enter a valid email address for the newsletter.');
+      return;
+    }
+
+    console.log(`Newsletter subscription: ${email}`);
+    setEmail('');
+    setErrorMessage('');
+    setThankYouMessage('Thanks for subscribing to our newsletter!');
+    setTimeout(() => setThankYouMessage(''), 3000);
   };
 
-  const handleFeedbackSubmit = (e) => {
+  // Review form submission
+  const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    setFeedback(''); // Reset feedback field after submission
+
+    // Check if the user is logged in
+    if (!user) {
+      setLoginPrompt('Please log in to submit a review.');
+      setThankYouMessage('');
+      setAdminErrorMessage('');
+      setErrorMessage('');
+      return;
+    }
+
+    // Check if the logged-in user is an admin
+    if (user.role === 'Admin') {
+      setAdminErrorMessage('Admins cannot submit reviews.');
+      setLoginPrompt('');
+      setThankYouMessage('');
+      setErrorMessage('');
+      return;
+    }
+
+    // Validate review email and content
+    if (!reviewEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reviewEmail)) {
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
+
+    if (rating === 0 || !review) {
+      setErrorMessage('Rating and review are required.');
+      return;
+    }
+    if (review.length > 100) {
+      setErrorMessage('Review text cannot be greater than 100 characters.');
+      return;
+    }
+
+    const reviewData = {
+      email: reviewEmail,
+      rating,
+      reviewText: review,
+    };
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await fetch('https://foodie-foodorderingwebsite.onrender.com/api/review/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(reviewData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setReviewEmail('');
+        setReview('');
+        setRating(0);
+        setThankYouMessage('Thanks for your feedback!');
+        setLoginPrompt('');
+        setAdminErrorMessage('');
+        setErrorMessage('');
+        setTimeout(() => setThankYouMessage(''), 3000);
+      } else {
+        setErrorMessage(result.message || 'Failed to submit review. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      setErrorMessage('There was an error submitting your review. Please try again.');
+    }
   };
 
   return (
@@ -31,7 +119,6 @@ function Footer() {
             <p><a href="http://localhost:3000/menu">Deals</a></p>
           </div>
 
-          
           <div className="footer-list">
             <h4>User Account</h4>
             <p><a href="http://localhost:3000/sign-up">Sign Up</a></p>
@@ -39,7 +126,7 @@ function Footer() {
             <p><a href="http://localhost:3000/cart">Cart</a></p>
           </div>
 
-          <div className="footer-list follow-box">
+          <div className="footer-list">
             <h4>Follow Us</h4>
             <div className="social-media">
               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
@@ -76,16 +163,44 @@ function Footer() {
           </div>
 
           <div className="footer-list">
-            <h4>Feedback</h4>
-            <form onSubmit={handleFeedbackSubmit} className="feedback-form">
+            <h4>Product Review</h4>
+            <form onSubmit={handleReviewSubmit} className="review-form">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={reviewEmail}
+                onChange={(e) => setReviewEmail(e.target.value)}
+                required
+              />
+              <div className="rating">
+                {[...Array(5)].map((_, index) => {
+                  const ratingValue = index + 1;
+                  return (
+                    <span
+                      key={ratingValue}
+                      className={`star ${ratingValue <= (hover || rating) ? 'filled' : ''}`}
+                      onClick={() => setRating(ratingValue)}
+                      onMouseEnter={() => setHover(ratingValue)}
+                      onMouseLeave={() => setHover(0)}
+                    >
+                      &#9733;
+                    </span>
+                  );
+                })}
+              </div>
               <textarea
-                placeholder="Your feedback"
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
+                placeholder="Share your thoughts about our website"
+                value={review}
+                onChange={(e) => setReview(e.target.value)}
                 required
               />
               <button type="submit">Submit</button>
             </form>
+
+            {thankYouMessage && <p className="thank-you-message">{thankYouMessage}</p>}
+            {errorMessage && <p className="error-message">{errorMessage}</p>}
+            {loginPrompt && <p className="login-prompt-message">{loginPrompt}</p>}
+            {adminErrorMessage && <p className="admin-error-message">{adminErrorMessage}</p>}
           </div>
         </div>
       </div>

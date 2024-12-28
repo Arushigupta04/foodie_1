@@ -5,7 +5,7 @@ import AddItemForm from './AddItem';
 import './style1.css';
 import { useUser } from '../userContext';
 
-const serverURL = "http://localhost:5000";
+const serverURL = "https://foodie-foodorderingwebsite.onrender.com";
 
 const MyComponent = () => {
   const { user } = useUser();
@@ -67,6 +67,7 @@ const MyComponent = () => {
   };
 
   return (
+    <div className='beauti'>
     <div className="container">
       {isAdmin ? (
         <>
@@ -85,6 +86,8 @@ const MyComponent = () => {
           <p>Accessible only by Admins.</p>
         </div>
       )}
+      
+    </div>
     </div>
   );
 };

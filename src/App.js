@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { CartProvider } from './components/Cart/CartContext';
@@ -18,7 +19,10 @@ import 'react-toastify/dist/ReactToastify.css';
 import AllCategories from './components/Items/AllCategories.jsx';
 import AllCategories1 from './components/Items/AllCategories1.jsx';
 import { useCookies } from 'react-cookie';
-
+import Reviews from './components/Items/Reviews.jsx';
+import AllrectOrder from './components/Items/AllrectOrder.jsx';
+import AllPayments from './components/Items/AllPayments.jsx';
+import Tracking from "../src/components/Items/TrackingPage.jsx";
 function App() {
   const [cookies] = useCookies(['token']);
   const [user, setUser] = useState(null);
@@ -29,13 +33,12 @@ function App() {
     const token = cookies.token;
 
     if (!token) {
-      console.error('No token found');
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/user", {
+      const response = await fetch("https://foodie-foodorderingwebsite.onrender.com/api/user", {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -61,17 +64,33 @@ function App() {
   }, []);
 
   // ProtectedRoute component
-  const ProtectedRoute = ({ children }) => {
+  const ProtectedRoute = ({ children, isAdminRoute }) => {
     if (loading) {
-      return <div>Loading...</div>;
+      return <div>Loading...</div>; // Optionally replace with a spinner or loader component
     }
-
+  
     if (!user) {
       return <Navigate to="/sign-in" replace />;
     }
-
-    if (user.role !== 'Admin') {
+  
+    // Check if the route is admin-protected and if the user has the Admin role
+    if (isAdminRoute && user.role !== 'Admin') {
       return <Navigate to="/" replace />;
+    }
+  
+    return children;
+  };
+  
+
+  // PublicRoute component
+  const PublicRoute = ({ children }) => {
+    if (loading) {
+      return <div>Loading...</div>; // Optional: Replace with a spinner/loader.
+    }
+
+    if (user) {
+      // Redirect users based on their roles
+      return user.role === 'Admin' ? <Navigate to="/" replace /> : <Navigate to="/" replace />;
     }
 
     return children;
@@ -82,30 +101,113 @@ function App() {
       <Router>
         <div className="main-body">
           <NavBar />
+          
           <Routes>
-            <Route path="/" element={<><Home /><Footer /></>} />
-            <Route path="/menu" element={<><MenuPage /><Footer /></>} />
-            <Route path="/sign-in" element={<Login />} />
-            <Route path="/sign-up" element={<SignUp />} />
-            <Route path="/profile" element={<UserProfile />} />
-            <Route path="/cart" element={<ShoppingCart />} />
-            <Route path="/admin/add-items" element={<><AddItem /><Footer /></>} />
-            <Route path="/admin/categories" element={<><AllCategories /><Footer /></>} />
-            <Route path="/admin/categories1" element={<><AllCategories1 /><Footer /></>} />
-            <Route 
-              path="/admin" 
+  {/* Public Routes */}
+  <Route 
+    path="/sign-in" 
+    element={
+      <PublicRoute>
+        <Login />
+      </PublicRoute>
+    } 
+  />
+  <Route 
+    path="/sign-up" 
+    element={
+      <PublicRoute>
+        <SignUp />
+      </PublicRoute>
+    } 
+  />
+
+  {/* Regular Routes */}
+  <Route path="/" element={<><Home /><Footer /></>} />
+  <Route path="/menu" element={<><MenuPage /><Footer /></>} />
+  <Route path="/profile" element={<UserProfile />} />
+  <Route path="/cart" element={<ShoppingCart />} />
+  <Route path="/about-us" element={<><AboutUs /><Footer /></>} />
+  {/* <Route path="/tracking/:id" element={<><Tracking/><Footer /></>} /> */}
+
+
+
+  {/* Admin Protected Routes */}
+  <Route 
+              path="/tracking/:id"
               element={
                 <ProtectedRoute>
-                  <><AdminDashboard /><Footer /></>
+                  <Tracking />
+                  <Footer />
                 </ProtectedRoute>
-              } 
+              }
             />
-            {/* <Route path="/admin/add-items" element={<ProtectedRoute><><AddItem /><Footer /></></ProtectedRoute>} />
-            <Route path="/admin/categories" element={<ProtectedRoute><><AllCategories /><Footer /></></ProtectedRoute>} />
-            <Route path="/admin/categories1" element={<ProtectedRoute><><AllCategories1 /><Footer /></></ProtectedRoute>} /> */}
-            <Route path="/about-us" element={<><AboutUs /><Footer /></>} />
-            <Route path="*" element={<ErrorPage />} />
-          </Routes>
+  <Route 
+    path="/admin" 
+    element={
+      <ProtectedRoute isAdminRoute={true}>
+        <><AdminDashboard /><Footer /></>
+      </ProtectedRoute>
+    } 
+  />
+  <Route 
+    path="/admin/add-items" 
+    element={
+      <ProtectedRoute isAdminRoute={true}>
+        <><AddItem /><Footer /></>
+      </ProtectedRoute>
+    } 
+  />
+  <Route 
+    path="/admin/categories" 
+    element={
+      <ProtectedRoute isAdminRoute={true}>
+        <><AllCategories /><Footer /></>
+      </ProtectedRoute>
+    } 
+  />
+  <Route 
+    path="/admin/categories1" 
+    element={
+      <ProtectedRoute isAdminRoute={true}>
+        <><AllCategories1 /><Footer /></>
+      </ProtectedRoute>
+    } 
+  />
+  <Route 
+    path="/admin/Review" 
+    element={
+      <ProtectedRoute isAdminRoute={true}>
+       <>
+       <Reviews /><Footer />
+       </> 
+      </ProtectedRoute>
+    } 
+  />
+  <Route 
+    path="/admin/alrect" 
+    element={
+      <ProtectedRoute isAdminRoute={true}>
+      <>
+      <AllrectOrder/><Footer />
+      </>
+      </ProtectedRoute>
+    } 
+  />
+  <Route 
+    path="/admin/alpay" 
+    element={
+      <ProtectedRoute isAdminRoute={true}>
+      <>
+      <AllPayments/><Footer />
+      </>
+      </ProtectedRoute>
+    } 
+  />
+
+  {/* Fallback Route */}
+  <Route path="*" element={<ErrorPage />} />
+</Routes>
+
           <ToastContainer />
         </div>
       </Router>
@@ -113,4 +215,4 @@ function App() {
   );
 }
 
-export default App;
+export default App;
